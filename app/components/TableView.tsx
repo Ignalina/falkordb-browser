@@ -5,6 +5,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
 import { Dispatch, SetStateAction, useState } from "react"
+import Input from "./Input"
 
 type EditableCell = {
     index: number
@@ -73,28 +74,25 @@ export default function TableView({ tableHeaders, tableRows, editableCells, onHo
                                             const isOnHover = onHoverCells.includes(cellIndex)
                                             const isHover = hover === index
                                             return (
-                                                <TableCell className={cn(`text-wrap`, Array.isArray(tableHeaders[cellIndex]) && tableHeaders[cellIndex][1])} key={cellIndex}>
+                                                <TableCell
+                                                    key={cellIndex}
+                                                    className={cn(`text-wrap`, Array.isArray(tableHeaders[cellIndex]) && tableHeaders[cellIndex][1], editableCell && isEditable ? "p-3" : "p-6")}
+                                                    onClick={() => setEditable(`${index}-${cellIndex}`)}
+                                                >
                                                     {
                                                         // eslint-disable-next-line no-nested-ternary
-                                                        !isOnHover ?
-                                                            editableCell ?
-                                                                // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-                                                                <div
-                                                                    ref={(ref) => {
-                                                                        if (!ref?.isContentEditable) return
-                                                                        ref?.focus()
-                                                                    }}
-                                                                    className={cn("p-4", isEditable && "bg-[#1F1F3D] hover:bg-[#2E2E51] focus:border focus:border-[#5D5FEF] rounded-lg")}
-                                                                    contentEditable={isEditable}
-                                                                    onBlur={() => setEditable("")}
-                                                                    onKeyDown={(e) => onKeyDown(e, editableCell.setState)}
-                                                                    onClick={() => setEditable(`${index}-${cellIndex}`)}
-                                                                    onInput={(e) => setVal(e.currentTarget.textContent || "")}
-                                                                >
-                                                                    {cell}
-                                                                </div>
-                                                                : cell
-                                                            : isHover ? cell : ""
+                                                        !isOnHover && editableCell && isEditable ?
+                                                            <Input
+                                                                ref={(ref) => ref?.focus()}
+                                                                className="w-32 p-2"
+                                                                variant="Small"
+                                                                value={cell}
+                                                                onBlur={() => setEditable("")}
+                                                                onChange={(e) => setVal(e.target.value)}
+                                                                onKeyDown={(e) => onKeyDown(e, editableCell.setState)}
+                                                            />
+                                                            : isOnHover && isHover ? cell
+                                                                : !isOnHover && cell
                                                     }
                                                 </TableCell>
                                             )

@@ -490,6 +490,7 @@ const GraphView = forwardRef(({ graphName, setQueries, schema }: {
                 {
                     selectedElement &&
                     <DataPanel
+                        onSetLabel={(label) => setProperty("label", label)}
                         removeProperty={removeProperty}
                         setProperty={setProperty}
                         obj={selectedElement.data}

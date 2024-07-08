@@ -16,7 +16,7 @@ interface Props {
     setProperty?: (key: string, newVal: string) => Promise<boolean>;
     setPropertySchema?: (key: string, newVal: string[]) => Promise<boolean>;
     removeProperty?: (key: string) => Promise<boolean>;
-    setLabel?: (label: string) => Promise<boolean>;
+    onSetLabel?: (label: string) => Promise<boolean>;
     onDeleteElement?: () => Promise<void>;
 }
 
@@ -30,7 +30,7 @@ const excludedProperties = new Set([
     "source",
 ]);
 
-export default function DataPanel({ inSchema, obj, onExpand, setProperty, setPropertySchema, removeProperty, onDeleteElement, setLabel }: Props) {
+export default function DataPanel({ inSchema, obj, onExpand, setProperty, setPropertySchema, removeProperty, onDeleteElement, onSetLabel }: Props) {
 
     const [isAddValue, setIsAddValue] = useState<boolean>(false)
     const [hover, setHover] = useState<string>("")
@@ -38,11 +38,10 @@ export default function DataPanel({ inSchema, obj, onExpand, setProperty, setPro
     const [labelEditable, setLabelEditable] = useState<boolean>(false)
     const [val, setVal] = useState<string>("")
     const [schemaVal, setSchemaVal] = useState<string[]>([])
-    const [newLabel, setNewLabel] = useState<string>("")
     const [key, setKey] = useState<string>("")
     const addValueRef = useRef<HTMLDivElement>(null)
     const type = obj.source ? "edge" : "node"
-    const label = (type === "edge" ? obj.label : obj.category) || "label"
+    const [label, setLabel] = useState(type === "edge" ? obj.label : obj.category) || "label"
 
     useEffect(() => {
         if (!isAddValue) return
@@ -120,27 +119,27 @@ export default function DataPanel({ inSchema, obj, onExpand, setProperty, setPro
         delete ob[k]
     }
 
-    const onSetLabel = async (e: KeyboardEvent<HTMLParagraphElement>) => {
-        if (!setLabel) return
+    const handelSetLabel = async (e: KeyboardEvent<HTMLParagraphElement>) => {
+        if (!onSetLabel) return
         if (e.code === "Escape") {
             e.preventDefault()
             setLabelEditable(false)
         }
         if (e.code !== "Enter") return
         e.preventDefault()
-        const success = await setLabel(newLabel)
+        const success = await onSetLabel(label)
         if (!success) return
         const ob = obj
         if (type === "edge") {
-            ob.label = newLabel
+            ob.label = label
             return
         }
-        ob.category = newLabel
+        ob.category = label
     }
 
     return (
         <div className="h-full w-full flex flex-col shadow-lg DataPanel">
-            <div className="w-full flex flex-row justify-between items-center bg-[#7167F6] p-4">
+            <div className={cn("w-full flex flex-row justify-between items-center bg-[#7167F6] p-4", labelEditable && "py-2")}>
                 <div className="flex flex-row gap-4 items-center">
                     <button
                         title="Close"
@@ -150,22 +149,22 @@ export default function DataPanel({ inSchema, obj, onExpand, setProperty, setPro
                     >
                         <ChevronRight />
                     </button>
-                    {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
-                    <div
-                        ref={ref => {
-                            if (ref?.contentEditable) {
-                                ref.focus()
-                            }
-                        }}
-                        className={cn("text-white py-1 px-2", labelEditable && "bg-white border-gray-200 text-black")}
-                        onInput={(e) => setNewLabel(e.currentTarget.textContent || "")}
-                        onClick={() => label === "label" && setLabel && setLabelEditable(true)}
-                        contentEditable={labelEditable}
-                        onBlur={() => setLabelEditable(false)}
-                        onKeyDown={onSetLabel}
-                    >
-                        {label}
-                    </div>
+                    {
+                        labelEditable ?
+                            <Input
+                                ref={ref => ref?.focus()}
+                                className="w-16"
+                                variant="Small"
+                                value={label}
+                                onChange={(e) => setLabel(e.target.value)}
+                                onBlur={() => setLabelEditable(false)}
+                                onKeyDown={handelSetLabel}
+                            />
+                            : <Button
+                                label={label}
+                                onClick={() => onSetLabel && setLabelEditable(true)}
+                            />
+                    }
                 </div>
                 <p className="flex flex-row text-white">{Object.keys(obj).filter((v) => !excludedProperties.has(v)).length} Attributes</p>
             </div>

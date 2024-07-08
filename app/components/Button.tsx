@@ -2,8 +2,8 @@ import { cn } from "@/lib/utils"
 
 /* eslint-disable react/require-default-props */
 interface Props extends React.DetailedHTMLProps<React.ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement> {
-    label: string
-    variant: "Large" | "Primary" | "Secondary"
+    label?: string
+    variant?: "Large" | "Primary" | "Secondary"
     icon?: JSX.Element
 }
 
