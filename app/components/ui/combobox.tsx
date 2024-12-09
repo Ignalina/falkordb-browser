@@ -25,9 +25,10 @@ interface ComboboxProps {
   isSchema?: boolean
   defaultOpen?: boolean
   onOpenChange?: (open: boolean) => void
+  setCreateOpen?: (open: boolean) => void
 }
 
-export default function Combobox({ isSelectGraph, disabled = false, inTable, type, options, setOptions, selectedValue = "", setSelectedValue, isSchema = false, defaultOpen = false, onOpenChange }: ComboboxProps) {
+export default function Combobox({ isSelectGraph, disabled = false, inTable, type, options, setOptions, selectedValue = "", setSelectedValue, isSchema = false, defaultOpen = false, onOpenChange, setCreateOpen }: ComboboxProps) {
 
   const [openDialog, setOpenDialog] = useState<boolean>(false)
   const [open, setOpen] = useState<boolean>(defaultOpen)
@@ -35,12 +36,12 @@ export default function Combobox({ isSelectGraph, disabled = false, inTable, typ
   const [editable, setEditable] = useState<string>("")
   const [isUploadOpen, setIsUploadOpen] = useState<string>()
   const [isDeleteOpen, setIsDeleteOpen] = useState<string>()
-  
+
   useEffect(() => {
     if (options.length !== 1) return
     setSelectedValue(options[0])
   }, [options, setSelectedValue])
-  
+
   const onExport = async (graphName: string) => {
     const result = await securedFetch(`api/graph/${prepareArg(graphName)}/export`, {
       method: "GET"
@@ -103,18 +104,22 @@ export default function Combobox({ isSelectGraph, disabled = false, inTable, typ
       }}>
         <DropdownMenuTrigger disabled={disabled} asChild>
           <Button
+            onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              setOpen(prev => !prev);
+            }}
             className={cn(inTable ? "text-sm font-light" : "text-2xl")}
             label={selectedValue || `Select ${type || "Graph"}`}
             open={open}
           />
         </DropdownMenuTrigger>
-        <DropdownMenuContent side="bottom" className="min-w-52 max-h-[30lvh] flex flex-col">
+        <DropdownMenuContent side="bottom" className="border-none min-w-52 max-h-[30lvh] flex flex-col bg-[#57577B]">
           {
-            options.length > 0 &&
-            <ul className="shrink grow overflow-auto">
-              {
-                options.map((option) => (
-                  <DropdownMenuItem key={option}>
+            options.length > 0 ?
+              options.map((option) => (
+                <>
+                  <DropdownMenuItem className="hover:!bg-[#7E7E9B]" key={option}>
                     <Button
                       className="w-full p-2"
                       label={option}
@@ -124,23 +129,36 @@ export default function Combobox({ isSelectGraph, disabled = false, inTable, typ
                       }}
                     />
                   </DropdownMenuItem>
-                ))
-              }
-            </ul>
+                  <DropdownMenuSeparator className="w-full bg-[#7E7E9B]" />
+                </>
+              ))
+              :
+              setCreateOpen &&
+              <DropdownMenuItem key="Create Graph" className="hover:!bg-[#7E7E9B]">
+                <Button
+                  className="w-full p-2"
+                  label="Create New Graph"
+                  onClick={() => {
+                    setCreateOpen(true)
+                    setTimeout(() => {
+                      const input = document.querySelector("input") as HTMLInputElement
+                      if (input) input.focus()
+                    }, 1)
+                    setOpen(false)
+                  }}
+                />
+              </DropdownMenuItem>
           }
           {
             isSelectGraph &&
-            <>
-              <DropdownMenuSeparator className="bg-gray-300" />
-              <DropdownMenuItem>
-                <DialogTrigger asChild>
-                  <Button
-                    className="w-full p-2"
-                    label="Manage Graphs"
-                  />
-                </DialogTrigger>
-              </DropdownMenuItem>
-            </>
+            <DropdownMenuItem key="Manage Graph" className="hover:!bg-[#7E7E9B]">
+              <DialogTrigger asChild>
+                <Button
+                  className="w-full p-2"
+                  label="Manage Graphs"
+                />
+              </DialogTrigger>
+            </DropdownMenuItem>
           }
         </DropdownMenuContent>
       </DropdownMenu>
@@ -197,7 +215,7 @@ export default function Combobox({ isSelectGraph, disabled = false, inTable, typ
                           />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent side="right" className="flex min-w-0">
-                          <DropdownMenuItem className="p-2">
+                          <DropdownMenuItem key="Upload" className="p-2">
                             <Button
                               disabled
                               variant="button"
@@ -205,7 +223,7 @@ export default function Combobox({ isSelectGraph, disabled = false, inTable, typ
                               onClick={() => setIsUploadOpen(option)}
                             />
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="p-2">
+                          <DropdownMenuItem key="Delete" className="p-2">
                             <Button
                               variant="button"
                               icon={<Trash2 />}

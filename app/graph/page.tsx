@@ -18,6 +18,7 @@ export default function Page() {
     const [queries, setQueries] = useState<Query[]>([])
     const [historyQuery, setHistoryQuery] = useState<string>("")
     const [selectedElement, setSelectedElement] = useState<ElementDataDefinition>();
+    const [createOpen, setCreateOpen] = useState<boolean>(false)
     const { data } = useSession() 
 
 
@@ -90,8 +91,8 @@ export default function Page() {
 
     return (
         <div className="Page">
-            <Header onSetGraphName={setGraphName} />
-            <div className="h-1 grow p-8 px-10 flex flex-col gap-8">
+            <Header onSetGraphName={setGraphName} open={createOpen} setOpen={setCreateOpen} />
+            <div className="h-1 grow p-8 px-10 flex flex-col gap-4">
                 <Selector
                     queries={queries}
                     onChange={setGraphName}
@@ -102,6 +103,7 @@ export default function Page() {
                     setGraph={setGraph}
                     graph={graph}
                     data={data}
+                    setCreateOpen={setCreateOpen}
 
                 />
                 <GraphView

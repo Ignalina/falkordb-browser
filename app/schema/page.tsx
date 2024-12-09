@@ -14,6 +14,7 @@ export default function Page() {
     const [schema, setSchema] = useState<Graph>(Graph.empty())
     const [edgesCount, setEdgesCount] = useState<number>(0)
     const [nodesCount, setNodesCount] = useState<number>(0)
+    const [createOpen, setCreateOpen] = useState<boolean>(false)
     const { data } = useSession()
 
     const fetchCount = useCallback(async () => {
@@ -57,7 +58,7 @@ export default function Page() {
 
     return (
         <div className="Page">
-            <Header onSetGraphName={setSchemaName} />
+            <Header open={createOpen} setOpen={setCreateOpen} onSetGraphName={setSchemaName} />
             <div className="h-1 grow p-8 px-10 flex flex-col gap-8">
                 <Selector
                     edgesCount={edgesCount}
@@ -67,6 +68,8 @@ export default function Page() {
                     graph={schema}
                     setGraph={setSchema}
                     data={data}
+                    setCreateOpen={setCreateOpen}
+                    type="Schema"
                 />
                 <SchemaView schema={schema} fetchCount={fetchCount} data={data} />
             </div>

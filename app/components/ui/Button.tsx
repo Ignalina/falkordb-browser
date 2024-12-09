@@ -68,9 +68,10 @@ const Button = forwardRef<HTMLButtonElement, Props>(({ label, variant = "button"
     >
         {iconSide === "left" && icon}
         {side === "left" && getChevron(open, side)}
-        {label && <p className="truncate">{label}</p>}
+        {label && <p className={cn("truncate", (label === "Select Graph" || label === "Select Schema") && "Text")}>{label}</p>}
         {side !== "left" && getChevron(open, side)}
         {iconSide === "right" && icon}
+        {props.children}
     </button>
 ))
 

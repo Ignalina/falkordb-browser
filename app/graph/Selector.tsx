@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { Dialog, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Editor } from "@monaco-editor/react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -16,7 +16,7 @@ import Duplicate from "./Duplicate";
 import SchemaView from "../schema/SchemaView";
 import View from "./View";
 
-export default function Selector({ onChange, graphName, queries, runQuery, edgesCount, nodesCount, setGraph, graph, data }: {
+export default function Selector({ onChange, graphName, queries, runQuery, edgesCount, nodesCount, setGraph, graph, data, setCreateOpen, type }: {
     /* eslint-disable react/require-default-props */
     onChange: (selectedGraphName: string) => void
     graphName: string
@@ -27,6 +27,8 @@ export default function Selector({ onChange, graphName, queries, runQuery, edges
     setGraph: (graph: Graph) => void
     graph: Graph
     data: Session | null
+    type?: string
+    setCreateOpen: Dispatch<SetStateAction<boolean>>
 }) {
 
     const [options, setOptions] = useState<string[]>([]);
@@ -108,7 +110,7 @@ export default function Selector({ onChange, graphName, queries, runQuery, edges
     return (
         <div className="flex flex-col gap-4">
             <div className="flex justify-between items-center">
-                <Combobox isSelectGraph options={options} setOptions={setOptions} selectedValue={selectedValue} setSelectedValue={handleOnChange} isSchema={!runQuery} />
+                <Combobox isSelectGraph options={options} setOptions={setOptions} selectedValue={selectedValue} setSelectedValue={handleOnChange} isSchema={!runQuery} setCreateOpen={setCreateOpen} type={type} />
                 <div className="flex gap-16 text-[#7167F6]">
                     <UploadGraph disabled />
                     <Button
@@ -258,7 +260,7 @@ export default function Selector({ onChange, graphName, queries, runQuery, edges
                                 />
                             </DialogTrigger>
                             <DialogComponent className="h-[90%] w-[90%]" title={`${selectedValue} Schema`}>
-                                <SchemaView schema={schema} data={data}/>
+                                <SchemaView schema={schema} data={data} />
                             </DialogComponent>
                         </Dialog>
                     </div>
