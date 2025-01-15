@@ -7,7 +7,7 @@ import CloseDialog from "./CloseDialog"
 
 interface Props {
     selectedValues: string[]
-    type: string
+    type: "Graph" | "Schema"
 }
 
 export default function ExportGraph({ selectedValues, type }: Props) {
@@ -17,8 +17,7 @@ export default function ExportGraph({ selectedValues, type }: Props) {
 
     const handleExport = () => {
         selectedValues.map(async value => {
-            const name = `${value}${!type ? "_schema" : ""}`
-            const result = await securedFetch(`api/graph/${prepareArg(name)}/export`, {
+            const result = await securedFetch(`api/graph/${prepareArg(value)}/export`, {
                 method: "GET"
             }, toast)
 
@@ -29,7 +28,7 @@ export default function ExportGraph({ selectedValues, type }: Props) {
             try {
                 const link = document.createElement('a')
                 link.href = url
-                link.setAttribute('download', `${name}.dump`)
+                link.setAttribute('download', `${value}.dump`)
                 document.body.appendChild(link)
                 link.click()
                 link.parentNode?.removeChild(link)
@@ -55,7 +54,7 @@ export default function ExportGraph({ selectedValues, type }: Props) {
                     disabled={selectedValues.filter(value => value !== "").length === 0}
                 />
             }
-            title="Export your graph"
+            title={`Export your ${type}`}
             description="Export a .dump file of your data"
         >
             <div className="flex gap-4 justify-end">

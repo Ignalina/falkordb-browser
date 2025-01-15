@@ -4,7 +4,7 @@ import { SetStateAction, Dispatch, useEffect, useRef, useState } from "react";
 import { DialogTitle } from "@/components/ui/dialog";
 import { Editor } from "@monaco-editor/react";
 import { editor } from "monaco-editor";
-import { cn, prepareArg, securedFetch } from "@/lib/utils";
+import { cn, getSchemaName, prepareArg, securedFetch } from "@/lib/utils";
 import { Session } from "next-auth";
 import { PlusCircle, RefreshCcw } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -21,7 +21,6 @@ import ExportGraph from "../components/ExportGraph";
 
 interface Props {
     /* eslint-disable react/require-default-props */
-    onChange: (selectedGraphName: string) => void
     graphName: string
     setGraphName: Dispatch<SetStateAction<string>>
     runQuery?: (query: string, setQueriesOpen: (open: boolean) => void) => Promise<void>
@@ -33,7 +32,7 @@ interface Props {
     data: Session | null
 }
 
-export default function Selector({ onChange, graphName, setGraphName, queries, runQuery, edgesCount, nodesCount, setGraph, graph, data: session }: Props) {
+export default function Selector({ graphName, setGraphName, queries, runQuery, edgesCount, nodesCount, setGraph, graph, data: session }: Props) {
 
     const [options, setOptions] = useState<string[]>([]);
     const [schema, setSchema] = useState<Graph>(Graph.empty());
@@ -62,7 +61,7 @@ export default function Selector({ onChange, graphName, setGraphName, queries, r
         }, toast)
         if (!result.ok) return
         const res = (await result.json()).result as string[]
-        setOptions(!runQuery ? res.filter(name => name.includes("_schema")).map(name => name.split("_")[0]) : res.filter(name => !name.includes("_schema")))
+        setOptions(type === "Schema" ? res.filter(name => name.includes("_schema")) : res.filter(name => !name.includes("_schema")))
     }
 
     useEffect(() => {
@@ -74,9 +73,9 @@ export default function Selector({ onChange, graphName, setGraphName, queries, r
     }
 
     const handleOnChange = async (name: string) => {
-        if (runQuery) {
+        if (type === "Graph") {
             const q = 'MATCH (n)-[e]-(m) return n,e,m'
-            const result = await securedFetch(`api/graph/${prepareArg(name)}_schema/?query=${prepareArg(q)}&create=false&role=${session?.user.role}`, {
+            const result = await securedFetch(`api/graph/${getSchemaName(prepareArg(name))}/?query=${prepareArg(q)}&create=false&role=${session?.user.role}`, {
                 method: "GET"
             }, toast)
 
@@ -87,7 +86,7 @@ export default function Selector({ onChange, graphName, setGraphName, queries, r
                 setSchema(Graph.create(name, json.result))
             }
         }
-        onChange(name)
+        setGraphName(name)
         setSelectedValue(name)
     }
 
@@ -130,7 +129,7 @@ export default function Selector({ onChange, graphName, setGraphName, queries, r
                         setOptions={setOptions}
                         selectedValue={selectedValue}
                         setSelectedValue={handleOnChange}
-                        isSchema={!runQuery}
+                        type={type}
                     />
                 </div>
                 <div className="flex gap-16 text-[#e5e7eb]">

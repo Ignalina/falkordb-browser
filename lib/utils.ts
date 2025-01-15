@@ -42,3 +42,7 @@ export function prepareArg(arg: string) {
 }
 
 export const defaultQuery = (q?: string) => q || "MATCH (n) OPTIONAL MATCH (n)-[e]-(m) return n,e,m LIMIT 100"
+
+export const getSchemaName = (graphName: string) => `{${graphName}}_schema`
+
+export const getGraphName = (schemaName: string) => schemaName.replace('{', '').replace('}_schema', '') 

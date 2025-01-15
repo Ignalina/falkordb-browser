@@ -4,7 +4,7 @@
 "use client"
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { cn, prepareArg, securedFetch } from "@/lib/utils"
+import { cn, getGraphName, getSchemaName, prepareArg, securedFetch } from "@/lib/utils"
 import { useEffect, useState } from "react"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/components/ui/use-toast"
@@ -18,17 +18,16 @@ interface ComboboxProps {
   isSelectGraph?: boolean,
   disabled?: boolean,
   inTable?: boolean,
-  type?: string | undefined,
+  type?: "Graph" | "Schema",
   options: string[],
   setOptions?: (value: string[]) => void,
   selectedValue?: string,
   setSelectedValue?: (value: string) => void,
-  isSchema?: boolean
   defaultOpen?: boolean
   onOpenChange?: (open: boolean) => void
 }
 
-export default function Combobox({ isSelectGraph = false, disabled = false, inTable, type, options, setOptions, selectedValue = "", setSelectedValue, isSchema = false, defaultOpen = false, onOpenChange }: ComboboxProps) {
+export default function Combobox({ isSelectGraph = false, disabled = false, inTable, type = "Graph", options, setOptions, selectedValue = "", setSelectedValue, defaultOpen = false, onOpenChange }: ComboboxProps) {
 
   const [openMenage, setOpenMenage] = useState<boolean>(false)
   const [open, setOpen] = useState<boolean>(defaultOpen)
@@ -38,7 +37,9 @@ export default function Combobox({ isSelectGraph = false, disabled = false, inTa
 
 
   const handleSetOption = async (option: string, optionName: string) => {
-    const result = await securedFetch(`api/graph/${prepareArg(option)}/?sourceName=${prepareArg(optionName)}`, {
+    const name = type === "Schema" ? getSchemaName(option) : option
+
+    const result = await securedFetch(`api/graph/${prepareArg(name)}/?sourceName=${prepareArg(optionName)}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json"
@@ -48,7 +49,7 @@ export default function Combobox({ isSelectGraph = false, disabled = false, inTa
 
     if (result.ok) {
 
-      const newOptions = options.map((opt) => opt === optionName ? option : opt)
+      const newOptions = options.map((opt) => opt === optionName ? name : opt)
       setOptions!(newOptions)
 
       if (setSelectedValue && optionName === selectedValue) setSelectedValue(option)
@@ -72,7 +73,7 @@ export default function Combobox({ isSelectGraph = false, disabled = false, inTa
   }, [options])
 
   const handleDelete = async (opts: string[]) => {
-    const names = opts.map(opt => isSchema ? `${opt}_schema` : opt)
+    const names = type === "Schema" ? opts.map(opt => getSchemaName(opt)) : opts
 
     const newNames = await Promise.all(names.map(async (name) => {
       const result = await securedFetch(`api/graph/${prepareArg(name)}`, {
@@ -96,11 +97,11 @@ export default function Combobox({ isSelectGraph = false, disabled = false, inTa
 
   return (
     <Dialog open={openMenage} onOpenChange={setOpenMenage}>
-      <Select value={selectedValue} onValueChange={setSelectedValue} open={open} onOpenChange={(o) => {
+      <Select value={getGraphName(selectedValue)} onValueChange={setSelectedValue} open={open} onOpenChange={(o) => {
         setOpen(o)
         if (onOpenChange) onOpenChange(o)
       }}>
-        <SelectTrigger data-type="select" disabled={disabled || options.length === 0} title={options.length === 0 ? "There is no graphs" : selectedValue || `Select ${type || "Graph"}`} className={cn("w-fit gap-2 border-none p-2", inTable ? "text-sm font-light" : "text-xl font-medium")}>
+        <SelectTrigger data-type="select" disabled={disabled || options.length === 0} title={options.length === 0 ? "There is no graphs" : getGraphName(selectedValue) || `Select ${type || "Graph"}`} className={cn("w-fit gap-2 border-none p-2", inTable ? "text-sm font-light" : "text-xl font-medium")}>
           <SelectValue placeholder={`Select ${type || "Graph"}`} />
         </SelectTrigger>
         <SelectContent className="min-w-52 max-h-[30lvh] bg-foreground">
@@ -109,10 +110,10 @@ export default function Combobox({ isSelectGraph = false, disabled = false, inTa
               {
                 options.map((option) => (
                   <SelectItem
-                    value={option}
-                    key={option}
+                    value={getGraphName(option)}
+                    key={getGraphName(option)}
                   >
-                    {option}
+                    {getGraphName(option)}
                   </SelectItem>
                 ))
               }

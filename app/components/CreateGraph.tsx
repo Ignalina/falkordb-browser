@@ -4,7 +4,7 @@
 
 import { useState } from "react"
 import { AlertCircle, PlusCircle } from "lucide-react"
-import { prepareArg, securedFetch } from "@/lib/utils"
+import { getSchemaName, prepareArg, securedFetch } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
 import DialogComponent from "./DialogComponent"
 import Button from "./ui/Button"
@@ -13,7 +13,7 @@ import Input from "./ui/Input"
 
 interface Props {
     onSetGraphName: (name: string) => void
-    type: string
+    type: "Graph" | "Schema"
     trigger?: React.ReactNode
 }
 
@@ -36,16 +36,19 @@ export default function CreateGraph({
 
     const handleCreateGraph = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
+        
         if (!graphName) {
             toast({
                 title: "Error",
-                description: "Graph name cannot be empty",
+                description: `${type} name cannot be empty`,
                 variant: "destructive"
             })
             return
         }
+
         const q = 'RETURN 1'
-        const result = await securedFetch(`api/graph/${prepareArg(graphName)}/?query=${prepareArg(q)}`, {
+        const name = type === "Schema" ? getSchemaName(prepareArg(graphName)) : prepareArg(graphName)
+        const result = await securedFetch(`api/graph/${name}/?query=${prepareArg(q)}`, {
             method: "GET",
         }, toast)
 
@@ -54,6 +57,11 @@ export default function CreateGraph({
         onSetGraphName(graphName)
         setGraphName("")
         setOpen(false)
+
+        toast({
+            title: "Success",
+            description: `${type} ${graphName} created successfully`,
+        })
     }
 
     return (

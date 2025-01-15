@@ -284,7 +284,7 @@ export default function SchemaView({ schema, fetchCount, session }: Props) {
             return false
         }
 
-        const result = await securedFetch(`api/graph/${prepareArg(schema.Id)}_schema/?query=${getCreateQuery(isAddEntity, selectedNodes as [Node, Node], attributes, label)}`, {
+        const result = await securedFetch(`api/graph/${prepareArg(schema.Id)}/?query=${getCreateQuery(isAddEntity, selectedNodes as [Node, Node], attributes, label)}`, {
             method: "GET"
         }, toast)
 
