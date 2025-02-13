@@ -210,7 +210,7 @@ export default function GraphDataPanel({ obj, setObj, onExpand, onDeleteElement,
                     >
                         <ChevronRight size={25} />
                     </Button>
-                    <p className="font-medium text-xl">{label}</p>
+                    <p className="font-medium text-xl">{label.join(", ")}</p>
                 </div>
                 <p className="font-medium text-xl">{attributes.length}&ensp;Attributes</p>
             </div>
